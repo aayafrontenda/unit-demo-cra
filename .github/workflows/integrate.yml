@@ -10,7 +10,6 @@ jobs:
         with:
           node-version: 18
       - run: npm ci
-      - run: npm start
-      - run: npx playwright install
+      - run: npx playwright install --with-deps chromium
       - run: npm test e2e
       - run: npm run test
