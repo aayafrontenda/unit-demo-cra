@@ -12,7 +12,7 @@ export const Application: FC = () => {
     <div>
       <nav>
         <Link data-testid="link-home" to="/">
-          Home2
+          Home23
         </Link>
         <Link to="/about">About</Link>
       </nav>
