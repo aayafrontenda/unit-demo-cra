@@ -45,7 +45,6 @@ jobs:
           node-version: 18
       - run: git checkout -b release/${{ github.ref_name }}
       - run: npm ci
-      - run: npm start
       - run: npx playwright install
       - run: npm run e2e
       - run: npm test
