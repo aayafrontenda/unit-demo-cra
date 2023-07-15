@@ -1,8 +1,5 @@
 name: Integrating new features from PR
-
-on:
-  pull_request:
-    branches: [master]
+on: [pull_request]
 
 jobs:
   test_pull_request:
@@ -14,4 +11,3 @@ jobs:
           node-version: 18
       - run: npm ci
       - run: npm test
-      -
