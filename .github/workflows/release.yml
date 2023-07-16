@@ -31,9 +31,6 @@ jobs:
           body: ${{ steps.changelog.outputs.changes }}
           token: ${{ github.token }}
 
-      - name: Authorization with Project Scope
-        run: gh auth refresh -s project
-
       - name: Check if Issue Exists
         uses: nickderobertis/check-if-issue-exists-action@master
         id: check_if_issue_exists
@@ -43,7 +40,9 @@ jobs:
           title: RELEASE ${{ github.ref_name }}
       - name: Create Issue
         if: steps.check_if_issue_exists.outputs.exists == 'false'
-        run: gh issue create --title "RELEASE ${{ github.ref_name }}" --body ${{ steps.changelog.outputs.changes }}
+        run: gh issue create --title "RELEASE ${{ github.ref_name }}" --body ${{ steps.changelog.outputs.changes }} --repo aayafrontenda/unit-demo-cra
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Search and Edit Issue
         id: edit
@@ -54,6 +53,8 @@ jobs:
           token: ${{ github.token }}
       - name: Edit Issue
         run: cat ${{ steps.edit.outputs.path }} | xargs gh issue edit --body ${{ steps.changelog.outputs.changes }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   test:
     runs-on: ubuntu-latest
