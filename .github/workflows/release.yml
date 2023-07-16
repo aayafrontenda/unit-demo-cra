@@ -58,8 +58,7 @@ jobs:
       - run: npx playwright install
       - run: npm run e2e
       - run: npm test
-      - run: npm run build
       - run: git push origin release/${{ github.ref_name }}
-      - run: npm run deploy
       - run: git config --global user.email "eeaayeyeah@gmal.com"
       - run: git config --global user.name "aayafrontenda"
+      - run: npm run deploy
