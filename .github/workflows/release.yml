@@ -59,6 +59,9 @@ jobs:
       - run: npm run e2e
       - run: npm test
       - run: git push origin release/${{ github.ref_name }}
-      - run: git config --global user.email "eeaayeyeah@gmal.com"
-      - run: git config --global user.name "aayafrontenda"
-      - run: npm run deploy
+      - run: npm run build
+      - name: Deploy to GH Pages 🚀
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: build
