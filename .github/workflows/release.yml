@@ -57,7 +57,9 @@ jobs:
           state:
             open
             # Find the last updated open issue that has these labels:
-          labels: ${{github.ref_name}}
+          labels: |
+            release
+            ${{github.ref_name}}
 
       - name: Update last updated report issue
         if: ${{ steps.last-issue.outputs.has-found == 'true' }}
@@ -70,7 +72,9 @@ jobs:
           issue-number: ${{ steps.last-issue.outputs.issue-number }}
           # Add a label(s) that `last-issue` can use to find this issue,
           # and any other relevant labels for the issue itself:
-          labels: ${{github.ref_name}}
+          labels: |
+            release
+            ${{github.ref_name}}
 
       - name: Add link to actions and issues
         uses: peter-evans/create-or-update-comment@5f728c3dae25f329afbe34ee4d08eef25569d79f
