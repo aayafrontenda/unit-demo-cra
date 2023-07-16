@@ -31,28 +31,29 @@ jobs:
           body: ${{ steps.changelog.outputs.changes }}
           token: ${{ github.token }}
 
-      - name: Check if issue exists
-        id: check-issue
-        uses: peter-evans/check-issue@v2
+      - name: Authorization with Project Scope
+        run: gh auth refresh -s project
+
+      - name: Check if Issue Exists
+        uses: nickderobertis/check-if-issue-exists-action@master
+        id: check_if_issue_exists
         with:
+          repo: aayafrontenda/unit-demo-cra
+          token: ${{ secrets.GITHUB_TOKEN }}
           title: RELEASE ${{ github.ref_name }}
-
-      - name: Update Issue
-        if: steps.check-issue.outputs.issue_exists == 'true'
-        uses: peter-evans/update-issue@v1
-        with:
-          issue-number: ${{ steps.check-issue.outputs.issue_number }}
-          content-filepath: ./CHANGELOG.md
-
       - name: Create Issue
-        if: steps.check-issue.outputs.issue_exists == 'false'
-        uses: peter-evans/create-issue-from-file@v4
+        if: steps.check_if_issue_exists.outputs.exists == 'false'
+        run: gh issue create --title "RELEASE ${{ github.ref_name }}" --body ${{ steps.changelog.outputs.changes }}
+
+      - name: Search and Edit Issue
+        id: edit
+        if: steps.check_if_issue_exists.outputs.exists == 'true'
+        uses: lee-dohm/select-matching-issues@v1
         with:
-          title: RELEASE ${{ github.ref_name }}
-          content-filepath: ./CHANGELOG.md
-          labels: |
-            report
-            automated issue
+          query: "RELEASE ${{ github.ref_name}} in:title"
+          token: ${{ github.token }}
+      - name: Edit Issue
+        run: cat ${{ steps.edit.outputs.path }} | xargs gh issue edit --body ${{ steps.changelog.outputs.changes }}
 
   test:
     runs-on: ubuntu-latest
