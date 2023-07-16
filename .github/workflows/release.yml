@@ -8,6 +8,8 @@ on:
 jobs:
   release:
     runs-on: ubuntu-latest
+    permissions:
+      issues: write
 
     steps:
       - name: Checkout Code
@@ -75,6 +77,15 @@ jobs:
           labels: |
             release
             ${{github.ref_name}}
+
+      - name: Add link to actions and issues
+        uses: peter-evans/create-or-update-comment@5f728c3dae25f329afbe34ee4d08eef25569d79f
+        with:
+          issue-number: ${{ steps.last-issue.outputs.issue-number }}
+          body: |
+            This issue is available for anyone to work on. **Make sure to reference this issue in your pull request.** :sparkles: Thank you for your contribution! :sparkles:
+            You can view this repo's actions page here: https://github.com/aayafrontenda/unit-demo-cra/actions
+            You can view this repo's issues list here: https://github.com/aayafrontenda/unit-demo-cra/issues
 
   test:
     runs-on: ubuntu-latest
