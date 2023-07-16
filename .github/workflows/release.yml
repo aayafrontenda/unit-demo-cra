@@ -57,7 +57,7 @@ jobs:
           query: "label:${{ github.ref_name }}"
           token: ${{ github.token }}
       - name: Edit Issue
-        run: cat ${{ steps.edit.outputs.path }} | xargs gh issue edit --body ${{ steps.changelog.outputs.changes }}
+        run: cat ${{ steps.edit.outputs.path }} | xargs gh issue edit --body-file CHANGELOG.md
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -88,3 +88,5 @@ jobs:
           token: ${{ github.token }}
       - name: Close Issue with Label ${{ github.ref_name }}
         run: cat ${{ steps.close.outputs.path }} | xargs gh issue close
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
