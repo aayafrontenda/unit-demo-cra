@@ -46,6 +46,7 @@ jobs:
           labels: |
             report
             automated issue
+          update_existing: true
 
   test:
     runs-on: ubuntu-latest
