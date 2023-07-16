@@ -31,7 +31,21 @@ jobs:
           body: ${{ steps.changelog.outputs.changes }}
           token: ${{ github.token }}
 
-      - name: Create Issue From File
+      - name: Check if issue exists
+        id: check-issue
+        uses: peter-evans/check-issue@v2
+        with:
+          title: RELEASE ${{ github.ref_name }}
+
+      - name: Update Issue
+        if: steps.check-issue.outputs.issue_exists == 'true'
+        uses: peter-evans/update-issue@v1
+        with:
+          issue-number: ${{ steps.check-issue.outputs.issue_number }}
+          content-filepath: ./CHANGELOG.md
+
+      - name: Create Issue
+        if: steps.check-issue.outputs.issue_exists == 'false'
         uses: peter-evans/create-issue-from-file@v4
         with:
           title: RELEASE ${{ github.ref_name }}
@@ -39,7 +53,6 @@ jobs:
           labels: |
             report
             automated issue
-          update_existing: true
 
   test:
     runs-on: ubuntu-latest
