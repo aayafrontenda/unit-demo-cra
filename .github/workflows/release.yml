@@ -49,17 +49,27 @@ jobs:
             automated issue
             ${{ github.ref_name }}
 
-      - name: Search and Edit Issue
-        id: edit
-        if: steps.check_if_issue_exists.outputs.exists == 'true'
-        uses: lee-dohm/select-matching-issues@v1
+      - name: Find the last open report issue
+        id: last-issue
+        uses: micalevisk/last-issue-action@v2
         with:
-          query: "label:${{ github.ref_name }}"
-          token: ${{ github.token }}
-      - name: Edit Issue
-        run: cat ${{ steps.edit.outputs.path }} | xargs gh issue edit --body-file CHANGELOG.md
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          state:
+            open
+            # Find the last updated open issue that has these labels:
+          labels: ${{github.ref_name}}
+
+      - name: Update last updated report issue
+        if: ${{ steps.last-issue.outputs.has-found == 'true' }}
+        uses: peter-evans/create-issue-from-file@v4
+        with:
+          title: RELEASE ${{ github.ref_name }}
+          content-filepath: ./CHANGELOG.md
+          # Update an existing issue if one was found (issue-number),
+          # otherwise an empty value creates a new issue:
+          issue-number: ${{ steps.last-issue.outputs.issue-number }}
+          # Add a label(s) that `last-issue` can use to find this issue,
+          # and any other relevant labels for the issue itself:
+          labels: ${{github.ref_name}}
 
   test:
     runs-on: ubuntu-latest
