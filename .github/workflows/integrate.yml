@@ -1,8 +1,5 @@
 name: Integrating new features from PR
-
-on:
-  pull_request:
-    branches: [master]
+on: [pull_request]
 
 jobs:
   test_pull_request:
@@ -13,5 +10,6 @@ jobs:
         with:
           node-version: 18
       - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run e2e
       - run: npm test
-      -

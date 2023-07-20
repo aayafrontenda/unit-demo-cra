@@ -1,0 +1,116 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - v[0-9]+.[0-9]+.[0-9]+
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Update CHANGELOG
+        id: changelog
+        uses: requarks/changelog-action@v1
+        with:
+          token: ${{ github.token }}
+          tag: ${{ github.ref_name }}
+          excludeTypes: doc
+
+      - name: Create Release
+        uses: ncipollo/release-action@v1.12.0
+        with:
+          allowUpdates: true
+          draft: false
+          makeLatest: true
+          name: ${{ github.ref_name }}
+          body: ${{ steps.changelog.outputs.changes }}
+          token: ${{ github.token }}
+
+      - name: Check if Issue Exists
+        uses: nickderobertis/check-if-issue-exists-action@master
+        id: check_if_issue_exists
+        with:
+          repo: aayafrontenda/unit-demo-cra
+          token: ${{ secrets.GITHUB_TOKEN }}
+          title: RELEASE ${{ github.ref_name }}
+      - name: Create Issue From File
+        if: steps.check_if_issue_exists.outputs.exists == 'false'
+        uses: peter-evans/create-issue-from-file@v4
+        with:
+          title: RELEASE ${{ github.ref_name }}
+          content-filepath: ./CHANGELOG.md
+          labels: |
+            report
+            automated issue            
+            release
+            ${{ github.ref_name }}
+
+      - name: Find the last open report issue
+        id: last-issue
+        uses: micalevisk/last-issue-action@v2
+        with:
+          state:
+            open
+            # Find the last updated open issue that has these labels:
+          labels: |
+            release
+            ${{github.ref_name}}
+
+      - name: Update last updated report issue
+        if: ${{ steps.last-issue.outputs.has-found == 'true' }}
+        uses: peter-evans/create-issue-from-file@v4
+        with:
+          title: RELEASE ${{ github.ref_name }}
+          content-filepath: ./CHANGELOG.md
+          # Update an existing issue if one was found (issue-number),
+          # otherwise an empty value creates a new issue:
+          issue-number: ${{ steps.last-issue.outputs.issue-number }}
+          # Add a label(s) that `last-issue` can use to find this issue,
+          # and any other relevant labels for the issue itself:
+          labels: |
+            release
+            ${{github.ref_name}}
+
+      - name: Add link to actions and issues
+        uses: peter-evans/create-or-update-comment@5f728c3dae25f329afbe34ee4d08eef25569d79f
+        with:
+          issue-number: ${{ steps.last-issue.outputs.issue-number }}
+          body: |
+            This issue is available for anyone to work on. **Make sure to reference this issue in your pull request.** :sparkles: Thank you for your contribution! :sparkles:
+            You can view this repo's actions page here: https://github.com/aayafrontenda/unit-demo-cra/actions
+            You can view this repo's issues list here: https://github.com/aayafrontenda/unit-demo-cra/issues
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 18
+      - run: git checkout -b release/${{ github.ref_name }}
+      - run: npm ci
+      - run: npx playwright install
+      - run: npm run e2e
+      - run: npm test
+      - run: git push origin release/${{ github.ref_name }}
+      - run: npm run build
+      - name: Deploy to GH Pages 🚀
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: build
+      - name: Close Issue
+        id: close
+        uses: lee-dohm/select-matching-issues@v1
+        with:
+          query: "label:${{github.ref_name}}"
+          token: ${{ github.token }}
+      - name: Close Issue with Label ${{ github.ref_name }}
+        run: cat ${{ steps.close.outputs.path }} | xargs gh issue close
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

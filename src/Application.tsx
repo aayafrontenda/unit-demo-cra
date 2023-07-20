@@ -12,8 +12,8 @@ export const Application: FC = () => {
     <div>
       <nav>
         <Link data-testid="link-home" to="/">
-          Home
-        </Link>
+          Home!
+        {/* </Link> */}
         <Link to="/about">About</Link>
       </nav>
       <Routes>
